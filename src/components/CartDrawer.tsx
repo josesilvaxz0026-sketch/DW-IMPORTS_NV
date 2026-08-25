@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { CartItem } from '../types';
 import { 
   X, 
@@ -30,6 +30,17 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
   onRemoveItem,
   onOpenCheckout,
 }) => {
+  // Lock background scroll on mobile when drawer is active
+  useEffect(() => {
+    if (isOpen) {
+      const originalOverflow = document.body.style.overflow;
+      document.body.style.overflow = 'hidden';
+      return () => {
+        document.body.style.overflow = originalOverflow;
+      };
+    }
+  }, [isOpen]);
+
   const [couponCode, setCouponCode] = useState('');
   const [discountPercent, setDiscountPercent] = useState(0);
   const [couponError, setCouponError] = useState('');
@@ -60,14 +71,14 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 overflow-hidden bg-black/70 backdrop-blur-sm animate-in fade-in duration-200">
+    <div className="fixed inset-0 z-50 overflow-hidden bg-black/75 backdrop-blur-sm animate-in fade-in duration-200">
       <div 
         id="drawer-cart"
-        className="absolute inset-y-0 right-0 max-w-full flex pl-10"
+        className="absolute inset-y-0 right-0 max-w-full flex pl-0 sm:pl-10 w-full justify-end"
       >
-        <div className="w-screen max-w-md bg-zinc-900 border-l border-zinc-800 shadow-2xl flex flex-col justify-between">
+        <div className="w-full sm:max-w-md bg-zinc-900 border-l border-zinc-800 shadow-2xl flex flex-col justify-between h-full">
           {/* Header */}
-          <div className="p-4 sm:p-5 bg-zinc-950 border-b border-zinc-800 flex items-center justify-between">
+          <div className="p-4 sm:p-5 bg-zinc-950 border-b border-zinc-800 flex items-center justify-between flex-shrink-0">
             <div className="flex items-center gap-2.5">
               <div className="w-8 h-8 rounded-lg bg-amber-500/20 border border-amber-500/40 flex items-center justify-center text-amber-400">
                 <ShoppingBag className="w-4 h-4" />
@@ -84,14 +95,14 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
               type="button"
               id="btn-close-cart"
               onClick={onClose}
-              className="p-1.5 text-zinc-400 hover:text-white bg-zinc-800 hover:bg-zinc-700 rounded-full transition-colors"
+              className="p-2 text-zinc-400 hover:text-white bg-zinc-800 hover:bg-zinc-700 rounded-full transition-colors"
             >
               <X className="w-5 h-5" />
             </button>
           </div>
 
           {/* Cart Free Shipping Bar */}
-          <div className="bg-amber-500/10 border-b border-amber-500/20 px-4 py-2 text-xs flex items-center justify-between text-amber-300">
+          <div className="bg-amber-500/10 border-b border-amber-500/20 px-4 py-2 text-xs flex items-center justify-between text-amber-300 flex-shrink-0">
             <span className="flex items-center gap-1.5 font-semibold text-[11px]">
               <Sparkles className="w-3.5 h-3.5 text-amber-400" />
               {totalQuantity >= 2 ? '🎉 Parabéns! Você ganhou Frete Grátis!' : `Adicione mais ${2 - totalQuantity} camisa para Frete Grátis!`}
@@ -99,7 +110,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
           </div>
 
           {/* Items List */}
-          <div className="flex-1 overflow-y-auto p-4 space-y-3.5">
+          <div className="flex-1 overflow-y-auto touch-scroll overscroll-contain p-4 space-y-3.5 min-h-0">
             {items.length === 0 ? (
               <div className="text-center py-16 px-4">
                 <div className="w-16 h-16 rounded-full bg-zinc-800/80 border border-zinc-700 flex items-center justify-center mx-auto mb-3 text-zinc-500">

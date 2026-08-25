@@ -73,7 +73,7 @@ export const JerseyPreviewCanvas: React.FC<JerseyPreviewCanvasProps> = ({
 
       {/* SVG Canvas for Photorealistic Jersey Vector */}
       <div 
-        className="relative w-full aspect-[4/4.5] max-h-[380px] rounded-2xl bg-gradient-to-b from-zinc-900 to-zinc-950 border border-zinc-800/80 p-4 flex items-center justify-center shadow-2xl overflow-hidden cursor-pointer group"
+        className="relative w-full aspect-[4/4.2] max-h-[210px] sm:max-h-[270px] md:max-h-[360px] rounded-2xl bg-gradient-to-b from-zinc-900 to-zinc-950 border border-zinc-800/80 p-3 sm:p-4 flex items-center justify-center shadow-2xl overflow-hidden cursor-pointer group"
         onClick={() => interactive && onToggleViewSide && onToggleViewSide()}
         title="Clique para virar a camisa"
       >
@@ -85,15 +85,15 @@ export const JerseyPreviewCanvas: React.FC<JerseyPreviewCanvasProps> = ({
 
         {/* Floating Patch Badge Indicator */}
         {patchSelected && (
-          <div className="absolute top-3 right-3 z-20 bg-zinc-900/90 border border-amber-500/50 text-amber-400 px-2.5 py-1 rounded-lg text-[11px] font-bold flex items-center gap-1 shadow-lg backdrop-blur">
-            <Award className="w-3.5 h-3.5 text-amber-400" />
+          <div className="absolute top-2.5 right-2.5 z-20 bg-zinc-900/90 border border-amber-500/50 text-amber-400 px-2 py-0.5 rounded-lg text-[10px] sm:text-[11px] font-bold flex items-center gap-1 shadow-lg backdrop-blur">
+            <Award className="w-3 h-3 text-amber-400" />
             <span>{patchSelected.name.split(' ')[1] || 'Patch Oficial'}</span>
           </div>
         )}
 
         {/* Sponsor Badge Indicator */}
         {customization.hasSponsor && (
-          <div className="absolute top-3 left-3 z-20 bg-emerald-950/80 border border-emerald-500/40 text-emerald-400 px-2 py-0.5 rounded text-[10px] font-medium tracking-wide">
+          <div className="absolute top-2.5 left-2.5 z-20 bg-emerald-950/90 border border-emerald-500/40 text-emerald-400 px-2 py-0.5 rounded text-[9px] sm:text-[10px] font-medium tracking-wide">
             Com Patrocínio (+R$20)
           </div>
         )}
@@ -101,7 +101,7 @@ export const JerseyPreviewCanvas: React.FC<JerseyPreviewCanvasProps> = ({
         {/* SVG Football Jersey Drawing */}
         <svg
           viewBox="0 0 400 460"
-          className="w-full h-full drop-shadow-[0_20px_25px_rgba(0,0,0,0.7)] transition-transform duration-300 group-hover:scale-[1.02]"
+          className="w-full h-full max-h-full drop-shadow-[0_20px_25px_rgba(0,0,0,0.7)] transition-transform duration-300 group-hover:scale-[1.02]"
         >
           <defs>
             {/* Jersey Fabric Shading Filter */}

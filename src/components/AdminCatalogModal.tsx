@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Jersey, JerseyCategory, JerseyType, CompetitionPatch } from '../types';
 import { COMMON_PATCHES } from '../data/initialJerseys';
 import { DW_LOGO_URL } from '../assets/logo';
@@ -33,6 +33,17 @@ export const AdminCatalogModal: React.FC<AdminCatalogModalProps> = ({
   onDeleteJersey,
   onResetCatalog,
 }) => {
+  // Lock background scroll on mobile when admin is active
+  useEffect(() => {
+    if (isOpen) {
+      const originalOverflow = document.body.style.overflow;
+      document.body.style.overflow = 'hidden';
+      return () => {
+        document.body.style.overflow = originalOverflow;
+      };
+    }
+  }, [isOpen]);
+
   if (!isOpen) return null;
 
   const [activeTab, setActiveTab] = useState<'add' | 'list'>('add');
@@ -136,13 +147,13 @@ export const AdminCatalogModal: React.FC<AdminCatalogModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 overflow-y-auto bg-black/80 backdrop-blur-sm animate-in fade-in duration-200">
+    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 overflow-hidden bg-black/80 backdrop-blur-sm animate-in fade-in duration-200">
       <div 
         id="modal-admin-catalog"
-        className="relative w-full max-w-3xl bg-zinc-900 border border-zinc-700/90 rounded-2xl shadow-2xl overflow-hidden my-auto max-h-[92vh] flex flex-col"
+        className="relative w-full max-w-3xl bg-zinc-900 border border-zinc-700/90 rounded-t-3xl sm:rounded-2xl shadow-2xl overflow-hidden h-[94dvh] sm:h-auto sm:max-h-[92vh] flex flex-col"
       >
         {/* Header */}
-        <div className="p-4 sm:p-5 bg-zinc-950 border-b border-zinc-800 flex items-center justify-between">
+        <div className="p-4 sm:p-5 bg-zinc-950 border-b border-zinc-800 flex items-center justify-between flex-shrink-0">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-zinc-900 border border-amber-500/30 overflow-hidden flex items-center justify-center p-0.5 shadow">
               <img
@@ -153,10 +164,10 @@ export const AdminCatalogModal: React.FC<AdminCatalogModalProps> = ({
               />
             </div>
             <div>
-              <h2 className="text-lg font-black text-white flex items-center gap-2">
+              <h2 className="text-base sm:text-lg font-black text-white flex items-center gap-2">
                 Painel DW IMPORTS • Gerenciar Catálogo
               </h2>
-              <p className="text-xs text-zinc-400">
+              <p className="text-[11px] sm:text-xs text-zinc-400">
                 Adicione novas camisas, imagens, preços e gerencie seus mantos
               </p>
             </div>
@@ -173,7 +184,7 @@ export const AdminCatalogModal: React.FC<AdminCatalogModalProps> = ({
         </div>
 
         {/* Tab Navigation */}
-        <div className="flex border-b border-zinc-800 bg-zinc-950/60 px-4 pt-2">
+        <div className="flex border-b border-zinc-800 bg-zinc-950/60 px-4 pt-2 flex-shrink-0">
           <button
             type="button"
             id="tab-admin-add"
@@ -203,7 +214,7 @@ export const AdminCatalogModal: React.FC<AdminCatalogModalProps> = ({
         </div>
 
         {/* Modal Body */}
-        <div className="p-5 sm:p-6 overflow-y-auto max-h-[75vh]">
+        <div className="p-4 sm:p-6 overflow-y-auto touch-scroll overscroll-contain flex-1 min-h-0">
           {feedbackMsg && (
             <div className="mb-4 p-3 bg-emerald-950/80 border border-emerald-500/50 rounded-xl text-emerald-300 text-xs font-bold flex items-center gap-2">
               <Check className="w-4 h-4 text-emerald-400" />

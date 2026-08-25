@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { X, Ruler, CheckCircle2 } from 'lucide-react';
 
 interface SizeGuideModalProps {
@@ -15,15 +15,26 @@ const SIZE_CHART = [
 ];
 
 export const SizeGuideModal: React.FC<SizeGuideModalProps> = ({ isOpen, onClose }) => {
+  // Lock background scroll on mobile when modal is active
+  useEffect(() => {
+    if (isOpen) {
+      const originalOverflow = document.body.style.overflow;
+      document.body.style.overflow = 'hidden';
+      return () => {
+        document.body.style.overflow = originalOverflow;
+      };
+    }
+  }, [isOpen]);
+
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-200">
+    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-200 overflow-hidden">
       <div 
         id="modal-size-guide"
-        className="relative w-full max-w-lg bg-zinc-900 border border-zinc-700/90 rounded-2xl shadow-2xl overflow-hidden"
+        className="relative w-full max-w-lg bg-zinc-900 border border-zinc-700/90 rounded-t-3xl sm:rounded-2xl shadow-2xl overflow-hidden max-h-[92dvh] flex flex-col"
       >
-        <div className="p-4 bg-zinc-950 border-b border-zinc-800 flex items-center justify-between">
+        <div className="p-4 bg-zinc-950 border-b border-zinc-800 flex items-center justify-between flex-shrink-0">
           <div className="flex items-center gap-2">
             <Ruler className="w-5 h-5 text-amber-400" />
             <h3 className="text-base font-bold text-white">Tabela de Medidas Oficial</h3>
@@ -31,13 +42,13 @@ export const SizeGuideModal: React.FC<SizeGuideModalProps> = ({ isOpen, onClose 
           <button
             type="button"
             onClick={onClose}
-            className="p-1.5 text-zinc-400 hover:text-white bg-zinc-800 hover:bg-zinc-700 rounded-full transition-colors"
+            className="p-2 text-zinc-400 hover:text-white bg-zinc-800 hover:bg-zinc-700 rounded-full transition-colors"
           >
             <X className="w-4 h-4" />
           </button>
         </div>
 
-        <div className="p-5">
+        <div className="p-4 sm:p-5 overflow-y-auto touch-scroll overscroll-contain flex-1 min-h-0">
           <p className="text-xs text-zinc-400 mb-4">
             Meça uma camisa sua que vista confortável esticada sobre uma mesa para comparar a largura (peito) e o comprimento (altura).
           </p>

@@ -44,6 +44,17 @@ export const SupportChatModal: React.FC<SupportChatModalProps> = ({
   onClose,
   onOpenSizeGuide,
 }) => {
+  // Lock background scroll on mobile when chat is active
+  useEffect(() => {
+    if (isOpen) {
+      const originalOverflow = document.body.style.overflow;
+      document.body.style.overflow = 'hidden';
+      return () => {
+        document.body.style.overflow = originalOverflow;
+      };
+    }
+  }, [isOpen]);
+
   const [messages, setMessages] = useState<ChatMessage[]>(INITIAL_BOT_MESSAGES);
   const [inputText, setInputText] = useState('');
   const [isTyping, setIsTyping] = useState(false);
@@ -113,13 +124,13 @@ export const SupportChatModal: React.FC<SupportChatModalProps> = ({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-200">
+    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-200 overflow-hidden">
       <div 
         id="modal-support-chat"
-        className="relative w-full max-w-lg bg-zinc-900 border border-zinc-700/90 rounded-2xl shadow-2xl overflow-hidden flex flex-col h-[580px] max-h-[90vh]"
+        className="relative w-full max-w-lg bg-zinc-900 border border-zinc-700/90 rounded-t-3xl sm:rounded-2xl shadow-2xl overflow-hidden flex flex-col h-[94dvh] sm:h-[580px] max-h-[92dvh]"
       >
         {/* Header */}
-        <div className="p-4 bg-zinc-950 border-b border-zinc-800 flex items-center justify-between">
+        <div className="p-4 bg-zinc-950 border-b border-zinc-800 flex items-center justify-between flex-shrink-0">
           <div className="flex items-center gap-3">
             <div className="relative">
               <div className="w-10 h-10 rounded-xl bg-zinc-900 border border-amber-500/40 overflow-hidden flex items-center justify-center p-0.5 shadow">
@@ -161,13 +172,13 @@ export const SupportChatModal: React.FC<SupportChatModalProps> = ({
               onClick={onClose}
               className="p-2 text-zinc-400 hover:text-white bg-zinc-800 hover:bg-zinc-700 rounded-full transition-colors"
             >
-              <X className="w-5 h-5" />
+              <X className="w-4 h-4" />
             </button>
           </div>
         </div>
 
         {/* Quick FAQ Pills */}
-        <div className="p-2.5 bg-zinc-950/80 border-b border-zinc-800 flex items-center gap-1.5 overflow-x-auto no-scrollbar text-xs">
+        <div className="p-2.5 bg-zinc-950/80 border-b border-zinc-800 flex items-center gap-1.5 overflow-x-auto touch-scroll no-scrollbar text-xs flex-shrink-0">
           {FAQ_SUGGESTIONS.map((faq, idx) => (
             <button
               key={idx}
@@ -181,7 +192,7 @@ export const SupportChatModal: React.FC<SupportChatModalProps> = ({
         </div>
 
         {/* Chat Messages List */}
-        <div className="flex-1 p-4 overflow-y-auto space-y-3.5 bg-gradient-to-b from-zinc-900 to-zinc-950">
+        <div className="flex-1 p-4 overflow-y-auto touch-scroll overscroll-contain space-y-3.5 bg-gradient-to-b from-zinc-900 to-zinc-950 min-h-0">
           {messages.map((msg) => (
             <div
               key={msg.id}
