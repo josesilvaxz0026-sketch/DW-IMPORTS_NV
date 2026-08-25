@@ -176,10 +176,100 @@ export const Navbar: React.FC<NavbarProps> = ({
                 : 'text-zinc-400 hover:text-white bg-zinc-900 border border-zinc-800'
             }`}
           >
-            🔥 Todas as Camisas
+            🔥 Todas
           </button>
 
-          {/* Top category 1: Camisas Retrô */}
+          <button
+            type="button"
+            id="nav-cat-brasileirao"
+            onClick={() => onSelectCategory('brasileirao')}
+            className={`px-3.5 py-1.5 rounded-full transition-all whitespace-nowrap flex items-center gap-1.5 ${
+              selectedCategory === 'brasileirao'
+                ? 'bg-emerald-500 text-zinc-950 font-black shadow'
+                : 'text-zinc-300 hover:text-white bg-zinc-900 border border-zinc-800'
+            }`}
+          >
+            <span>🇧🇷</span> Brasileirão
+          </button>
+
+          <button
+            type="button"
+            id="nav-cat-premier"
+            onClick={() => onSelectCategory('premier_league')}
+            className={`px-3.5 py-1.5 rounded-full transition-all whitespace-nowrap flex items-center gap-1.5 ${
+              selectedCategory === 'premier_league'
+                ? 'bg-purple-500 text-white font-black shadow'
+                : 'text-zinc-300 hover:text-white bg-zinc-900 border border-zinc-800'
+            }`}
+          >
+            <span>🏴󠁧󠁢󠁥󠁮󠁧󠁿</span> Premier League
+          </button>
+
+          <button
+            type="button"
+            id="nav-cat-laliga"
+            onClick={() => onSelectCategory('la_liga')}
+            className={`px-3.5 py-1.5 rounded-full transition-all whitespace-nowrap flex items-center gap-1.5 ${
+              selectedCategory === 'la_liga'
+                ? 'bg-rose-500 text-white font-black shadow'
+                : 'text-zinc-300 hover:text-white bg-zinc-900 border border-zinc-800'
+            }`}
+          >
+            <span>🇪🇸</span> La Liga
+          </button>
+
+          <button
+            type="button"
+            id="nav-cat-ligue1"
+            onClick={() => onSelectCategory('ligue_1')}
+            className={`px-3.5 py-1.5 rounded-full transition-all whitespace-nowrap flex items-center gap-1.5 ${
+              selectedCategory === 'ligue_1'
+                ? 'bg-blue-500 text-white font-black shadow'
+                : 'text-zinc-300 hover:text-white bg-zinc-900 border border-zinc-800'
+            }`}
+          >
+            <span>🇫🇷</span> Ligue 1
+          </button>
+
+          <button
+            type="button"
+            id="nav-cat-bundesliga"
+            onClick={() => onSelectCategory('bundesliga')}
+            className={`px-3.5 py-1.5 rounded-full transition-all whitespace-nowrap flex items-center gap-1.5 ${
+              selectedCategory === 'bundesliga'
+                ? 'bg-amber-500 text-zinc-950 font-black shadow'
+                : 'text-zinc-300 hover:text-white bg-zinc-900 border border-zinc-800'
+            }`}
+          >
+            <span>🇩🇪</span> Bundesliga
+          </button>
+
+          <button
+            type="button"
+            id="nav-cat-seriea"
+            onClick={() => onSelectCategory('serie_a')}
+            className={`px-3.5 py-1.5 rounded-full transition-all whitespace-nowrap flex items-center gap-1.5 ${
+              selectedCategory === 'serie_a'
+                ? 'bg-teal-500 text-zinc-950 font-black shadow'
+                : 'text-zinc-300 hover:text-white bg-zinc-900 border border-zinc-800'
+            }`}
+          >
+            <span>🇮🇹</span> Serie A
+          </button>
+
+          <button
+            type="button"
+            id="nav-cat-selecoes"
+            onClick={() => onSelectCategory('selecoes')}
+            className={`px-3.5 py-1.5 rounded-full transition-all whitespace-nowrap flex items-center gap-1.5 ${
+              selectedCategory === 'selecoes'
+                ? 'bg-sky-500 text-zinc-950 font-black shadow'
+                : 'text-sky-300 hover:text-sky-200 bg-sky-500/10 border border-sky-500/30'
+            }`}
+          >
+            <span>🌍</span> Seleções
+          </button>
+
           <button
             type="button"
             id="nav-cat-retro"
@@ -190,47 +280,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                 : 'text-amber-300 hover:text-amber-200 bg-amber-500/10 border border-amber-500/30'
             }`}
           >
-            ⭐ Camisas Retrô (R$ 170)
-          </button>
-
-          {/* Top category 2: Seleções */}
-          <button
-            type="button"
-            id="nav-cat-selecoes"
-            onClick={() => onSelectCategory('selecoes')}
-            className={`px-3.5 py-1.5 rounded-full transition-all whitespace-nowrap flex items-center gap-1.5 ${
-              selectedCategory === 'selecoes'
-                ? 'bg-emerald-500 text-zinc-950 font-black shadow'
-                : 'text-emerald-300 hover:text-emerald-200 bg-emerald-500/10 border border-emerald-500/30'
-            }`}
-          >
-            🌍 Seleções Mundiais (R$ 150)
-          </button>
-
-          <button
-            type="button"
-            id="nav-cat-brasileirao"
-            onClick={() => onSelectCategory('brasileirao')}
-            className={`px-3.5 py-1.5 rounded-full transition-all whitespace-nowrap ${
-              selectedCategory === 'brasileirao'
-                ? 'bg-white text-zinc-950 font-black shadow'
-                : 'text-zinc-400 hover:text-white bg-zinc-900 border border-zinc-800'
-            }`}
-          >
-            🇧🇷 Brasileirão Série A
-          </button>
-
-          <button
-            type="button"
-            id="nav-cat-europeu"
-            onClick={() => onSelectCategory('europeu')}
-            className={`px-3.5 py-1.5 rounded-full transition-all whitespace-nowrap ${
-              selectedCategory === 'europeu'
-                ? 'bg-white text-zinc-950 font-black shadow'
-                : 'text-zinc-400 hover:text-white bg-zinc-900 border border-zinc-800'
-            }`}
-          >
-            ⚡ Ligas Europeias
+            <span>⭐</span> Retrô (R$ 170)
           </button>
         </div>
       </div>

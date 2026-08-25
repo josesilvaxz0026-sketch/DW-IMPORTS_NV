@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { Jersey, CartItem, CustomizationOptions, JerseyCategory } from './types';
+import { Jersey, CartItem, CustomizationOptions } from './types';
 import { INITIAL_JERSEYS, WHATSAPP_NUMBER, WHATSAPP_DISPLAY } from './data/initialJerseys';
 import { Navbar } from './components/Navbar';
-import { HeroBanner } from './components/HeroBanner';
+import { LeagueCards, LEAGUES_DATA } from './components/LeagueCards';
 import { LeagueFilter } from './components/LeagueFilter';
 import { JerseyCard } from './components/JerseyCard';
 import { JerseyCustomizerModal } from './components/JerseyCustomizerModal';
@@ -14,18 +14,53 @@ import { CheckoutModal } from './components/CheckoutModal';
 import { Footer } from './components/Footer';
 import { 
   MessageCircle, 
-  ShoppingBag, 
   Phone, 
-  Sparkles, 
-  Layers, 
   Check,
   SearchX,
-  Flame,
-  Award
+  Sparkles
 } from 'lucide-react';
 
 const JERSEYS_STORAGE_KEY = 'manto_store_jerseys_catalog_v1';
 const CART_STORAGE_KEY = 'manto_store_cart_v1';
+
+export function matchesLeagueFilter(j: Jersey, leagueId: string): boolean {
+  if (leagueId === 'all') return true;
+  const l = j.league.toLowerCase();
+  const t = j.team.toLowerCase();
+  const cat = j.category;
+  const type = j.type;
+
+  if (leagueId === 'la_liga') {
+    return l.includes('la liga') || l.includes('espanha') || t.includes('real madrid') || t.includes('barcelona') || t.includes('atlético');
+  }
+  if (leagueId === 'premier_league') {
+    return l.includes('premier') || l.includes('inglaterra') || t.includes('manchester') || t.includes('arsenal') || t.includes('liverpool') || t.includes('chelsea');
+  }
+  if (leagueId === 'ligue_1') {
+    return l.includes('ligue 1') || l.includes('frança') || t.includes('psg');
+  }
+  if (leagueId === 'bundesliga') {
+    return l.includes('bundesliga') || l.includes('alemanha') || t.includes('bayern') || t.includes('dortmund') || t.includes('leverkusen');
+  }
+  if (leagueId === 'serie_a') {
+    return l.includes('serie a') || l.includes('itália') || t.includes('milan') || t.includes('inter') || t.includes('juventus') || t.includes('roma');
+  }
+  if (leagueId === 'brasileirao') {
+    return cat === 'brasileirao' || l.includes('brasileir') || (
+      t.includes('flamengo') || t.includes('palmeiras') || t.includes('corinthians') || 
+      t.includes('são paulo') || t.includes('vasco') || t.includes('botafogo') || 
+      t.includes('fluminense') || t.includes('grêmio') || t.includes('internacional') || 
+      t.includes('santos') || t.includes('atlético-mg') || t.includes('cruzeiro')
+    );
+  }
+  if (leagueId === 'selecoes') {
+    return cat === 'selecoes' || type === 'selecao' || l.includes('seleç');
+  }
+  if (leagueId === 'retro') {
+    return cat === 'retro' || type === 'retro' || l.includes('retrô') || l.includes('clássicos');
+  }
+  return true;
+}
 
 export default function App() {
   // Load jerseys from LocalStorage or fall back to INITIAL_JERSEYS
@@ -59,7 +94,7 @@ export default function App() {
 
   // Navigation and Filtering State
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState<string>('all');
+  const [selectedLeague, setSelectedLeague] = useState<string>('all');
   const [selectedTeam, setSelectedTeam] = useState<string>('');
   const [sortBy, setSortBy] = useState<string>('featured');
 
@@ -98,31 +133,31 @@ export default function App() {
     setTimeout(() => setToastMessage(null), 3000);
   };
 
-  // Add customized jersey to cart
-  const handleAddToCart = (jersey: Jersey, customization: CustomizationOptions, unitPrice: number) => {
-    const cartItemId = `${jersey.id}-${customization.size}-${customization.customName}-${customization.customNumber}-${customization.hasSponsor}-${customization.selectedPatch || 'none'}`;
-    
+  // Cart actions
+  const handleAddToCart = (item: CartItem) => {
     setCart(prev => {
-      const existingIndex = prev.findIndex(item => item.cartItemId === cartItemId);
-      if (existingIndex > -1) {
+      // Check if exact same item exists (same jersey, name, number, size, patch, sponsor)
+      const existingIdx = prev.findIndex(
+        i => i.jersey.id === item.jersey.id &&
+             i.customization.size === item.customization.size &&
+             i.customization.hasCustomNameNumber === item.customization.hasCustomNameNumber &&
+             i.customization.customName === item.customization.customName &&
+             i.customization.customNumber === item.customization.customNumber &&
+             i.customization.hasSponsor === item.customization.hasSponsor &&
+             i.customization.selectedPatch === item.customization.selectedPatch
+      );
+
+      if (existingIdx > -1) {
         const updated = [...prev];
-        updated[existingIndex].quantity += 1;
-        updated[existingIndex].totalPrice = updated[existingIndex].quantity * updated[existingIndex].unitPrice;
+        updated[existingIdx].quantity += item.quantity;
+        updated[existingIdx].totalPrice = updated[existingIdx].quantity * updated[existingIdx].unitPrice;
         return updated;
-      } else {
-        const newItem: CartItem = {
-          cartItemId,
-          jersey,
-          customization,
-          unitPrice,
-          quantity: 1,
-          totalPrice: unitPrice,
-        };
-        return [...prev, newItem];
       }
+
+      return [item, ...prev];
     });
 
-    showToast(`"${jersey.name}" adicionado ao carrinho!`);
+    showToast(`Manto do ${item.jersey.team} adicionado ao carrinho!`);
     setIsCartOpen(true);
   };
 
@@ -132,9 +167,12 @@ export default function App() {
         .map(item => {
           if (item.cartItemId === cartItemId) {
             const newQty = item.quantity + delta;
-            return newQty > 0 
-              ? { ...item, quantity: newQty, totalPrice: newQty * item.unitPrice } 
-              : null;
+            if (newQty <= 0) return null;
+            return {
+              ...item,
+              quantity: newQty,
+              totalPrice: newQty * item.unitPrice,
+            };
           }
           return item;
         })
@@ -168,25 +206,23 @@ export default function App() {
     showToast('Catálogo restaurado com as camisas oficiais!');
   };
 
-  // Extract unique popular teams for filtering
+  // Extract unique popular teams for the selected league
   const availableTeams = useMemo(() => {
     const teamsSet = new Set<string>();
     jerseys.forEach(j => {
-      if (j.team) teamsSet.add(j.team);
+      if (matchesLeagueFilter(j, selectedLeague) && j.team) {
+        teamsSet.add(j.team);
+      }
     });
     return Array.from(teamsSet).sort();
-  }, [jerseys]);
+  }, [jerseys, selectedLeague]);
 
   // Filter and Sort Jerseys
   const filteredJerseys = useMemo(() => {
     return jerseys.filter(j => {
-      // Category filter
-      if (selectedCategory !== 'all') {
-        if (selectedCategory === 'retro' && j.type !== 'retro' && j.category !== 'retro') return false;
-        if (selectedCategory === 'selecoes' && j.type !== 'selecao' && j.category !== 'selecoes') return false;
-        if (selectedCategory === 'brasileirao' && j.category !== 'brasileirao') return false;
-        if (selectedCategory === 'europeu' && j.category !== 'europeu') return false;
-        if (selectedCategory === 'outros' && j.category !== 'outros') return false;
+      // League filter
+      if (!matchesLeagueFilter(j, selectedLeague)) {
+        return false;
       }
 
       // Team filter
@@ -222,13 +258,11 @@ export default function App() {
       if (!a.isBestSeller && b.isBestSeller) return 1;
       return 0;
     });
-  }, [jerseys, selectedCategory, selectedTeam, searchQuery, sortBy]);
+  }, [jerseys, selectedLeague, selectedTeam, searchQuery, sortBy]);
 
   const totalCartCount = cart.reduce((acc, item) => acc + item.quantity, 0);
 
-  // Filter subsets for quick section views
-  const retroJerseys = useMemo(() => jerseys.filter(j => j.type === 'retro' || j.category === 'retro'), [jerseys]);
-  const selecoesJerseys = useMemo(() => jerseys.filter(j => j.type === 'selecao' || j.category === 'selecoes'), [jerseys]);
+  const selectedLeagueObj = LEAGUES_DATA.find(l => l.id === selectedLeague) || LEAGUES_DATA[0];
 
   return (
     <div className="min-h-screen bg-zinc-950 text-zinc-100 font-sans flex flex-col selection:bg-amber-500 selection:text-zinc-950">
@@ -248,28 +282,30 @@ export default function App() {
         onOpenCart={() => setIsCartOpen(true)}
         onOpenSupport={() => setIsSupportOpen(true)}
         onOpenAdmin={() => setIsAdminOpen(true)}
-        selectedCategory={selectedCategory}
+        selectedCategory={selectedLeague}
         onSelectCategory={(cat) => {
-          setSelectedCategory(cat);
+          setSelectedLeague(cat);
           setSelectedTeam('');
         }}
       />
 
-      {/* Hero Banner (Only shown if no active search to keep focus clean) */}
-      {!searchQuery && selectedCategory === 'all' && (
-        <HeroBanner
-          onSelectCategory={(cat) => setSelectedCategory(cat)}
-          onOpenCustomizerWithSample={() => {
-            const sample = jerseys.find(j => j.id === 'retro-brasil-2002') || jerseys[0];
-            setCustomizingJersey(sample);
-          }}
-        />
-      )}
+      {/* Direct on-screen League Cards with Country Flags */}
+      <LeagueCards
+        selectedLeague={selectedLeague}
+        onSelectLeague={(leagueId) => {
+          setSelectedLeague(leagueId);
+          setSelectedTeam('');
+        }}
+        jerseys={jerseys}
+      />
 
-      {/* League & Team Filter Bar */}
+      {/* League & Team Filter Sub-Bar */}
       <LeagueFilter
-        selectedCategory={selectedCategory}
-        onSelectCategory={setSelectedCategory}
+        selectedLeague={selectedLeague}
+        onSelectLeague={(leagueId) => {
+          setSelectedLeague(leagueId);
+          setSelectedTeam('');
+        }}
         selectedTeam={selectedTeam}
         onSelectTeam={setSelectedTeam}
         sortBy={sortBy}
@@ -280,30 +316,34 @@ export default function App() {
 
       {/* Main Product Catalog Section */}
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Category Heading & Highlights */}
-        <div className="mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-          <div>
-            <h2 className="text-xl sm:text-2xl font-black text-white tracking-tight flex items-center gap-2">
-              {selectedCategory === 'retro' && '⭐ Camisas Retrô Históricas'}
-              {selectedCategory === 'selecoes' && '🌍 Camisas de Seleções Mundiais'}
-              {selectedCategory === 'brasileirao' && '🇧🇷 Mantos do Brasileirão Série A'}
-              {selectedCategory === 'europeu' && '⚡ Gigantes das Ligas Europeias'}
-              {selectedCategory === 'all' && '🔥 Todas as Camisas Disponíveis'}
-            </h2>
-            <p className="text-xs text-zinc-400 mt-0.5">
-              {selectedCategory === 'retro' 
-                ? 'Mantos históricos lendários por R$ 170,00 com personalização oficial'
-                : 'Camisas tailandesas 1:1 de alta precisão por R$ 150,00 com frete para todo o Brasil'}
-            </p>
+        {/* Active League Title & Pricing Summary */}
+        <div className="mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-zinc-900/60 border border-zinc-800/80 p-4 rounded-2xl">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-zinc-950 border border-zinc-700 flex items-center justify-center text-2xl shadow-inner">
+              {selectedLeagueObj.flag}
+            </div>
+            <div>
+              <h2 className="text-lg sm:text-xl font-black text-white tracking-tight flex items-center gap-2">
+                <span>{selectedLeagueObj.name}</span>
+                <span className="text-xs font-semibold text-zinc-400 bg-zinc-800 px-2 py-0.5 rounded-full">
+                  {selectedLeagueObj.country}
+                </span>
+              </h2>
+              <p className="text-xs text-zinc-400">
+                {selectedLeague === 'retro' 
+                  ? 'Mantos históricos clássicos por R$ 170,00 com personalização'
+                  : 'Camisas oficiais tailandesas 1:1 por R$ 150,00 com frete grátis acima de 2 unidades'}
+              </p>
+            </div>
           </div>
 
-          {/* Quick Highlight Pills */}
-          <div className="flex items-center gap-2 text-xs">
-            <span className="bg-zinc-900 border border-zinc-800 text-zinc-300 px-3 py-1 rounded-full font-bold">
+          {/* Pricing Highlight Badges */}
+          <div className="flex items-center gap-2 text-xs flex-wrap">
+            <span className="bg-zinc-950 border border-zinc-800 text-zinc-300 px-3 py-1.5 rounded-xl font-bold">
               Nome & Número: <strong className="text-amber-400">+R$ 20</strong>
             </span>
-            <span className="bg-zinc-900 border border-zinc-800 text-zinc-300 px-3 py-1 rounded-full font-bold">
-              Patrocínio: <strong className="text-amber-400">+R$ 20</strong>
+            <span className="bg-zinc-950 border border-zinc-800 text-zinc-300 px-3 py-1.5 rounded-xl font-bold">
+              Patrocínio/Patch: <strong className="text-amber-400">+R$ 20</strong>
             </span>
           </div>
         </div>
@@ -323,102 +363,29 @@ export default function App() {
           /* Empty Search State */
           <div className="text-center py-16 px-4 bg-zinc-900/50 rounded-2xl border border-zinc-800/80 my-4">
             <SearchX className="w-12 h-12 text-zinc-500 mx-auto mb-3" />
-            <h3 className="text-base font-bold text-white mb-1">Nenhuma camisa encontrada</h3>
+            <h3 className="text-base font-bold text-white mb-1">Nenhum manto encontrado</h3>
             <p className="text-xs text-zinc-400 max-w-sm mx-auto mb-4">
-              Não encontramos resultados para sua busca atual. Tente buscar por outro time ou limpe os filtros.
+              Não encontramos camisas para os filtros selecionados. Tente selecionar outra liga ou limpe os filtros.
             </p>
             <div className="flex justify-center gap-2">
               <button
                 type="button"
                 onClick={() => {
                   setSearchQuery('');
-                  setSelectedCategory('all');
+                  setSelectedLeague('all');
                   setSelectedTeam('');
                 }}
                 className="bg-amber-500 hover:bg-amber-400 text-zinc-950 font-bold text-xs py-2.5 px-5 rounded-xl transition-colors"
               >
-                Limpar Todos os Filtros
+                Ver Todas as Camisas
               </button>
               <button
                 type="button"
                 onClick={() => setIsAdminOpen(true)}
                 className="bg-zinc-800 hover:bg-zinc-700 text-white font-bold text-xs py-2.5 px-5 rounded-xl transition-colors border border-zinc-700"
               >
-                Adicionar Nova Camisa no Admin
+                Adicionar Nova Camisa
               </button>
-            </div>
-          </div>
-        )}
-
-        {/* Special Highlight Row for Retrô and Seleções when viewing 'all' */}
-        {selectedCategory === 'all' && !searchQuery && (
-          <div className="mt-14 space-y-12">
-            {/* Retrô Showcase Section */}
-            <div className="bg-gradient-to-r from-amber-950/40 via-zinc-900 to-zinc-950 p-6 sm:p-8 rounded-3xl border border-amber-500/30">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6">
-                <div>
-                  <span className="text-[11px] font-black uppercase tracking-wider text-amber-400 bg-amber-500/10 px-2.5 py-1 rounded-full border border-amber-500/20">
-                    ⭐ Seção Especial
-                  </span>
-                  <h3 className="text-2xl font-black text-white mt-1">
-                    Camisas Retrô Clássicas (R$ 170,00)
-                  </h3>
-                  <p className="text-xs text-zinc-400">
-                    Mantos lendários: Pelé 70, Zico 81, Romário 94, Ronaldo 2002, Ronaldinho 2006 e Zidane 2002.
-                  </p>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => setSelectedCategory('retro')}
-                  className="self-start sm:self-auto bg-amber-500 hover:bg-amber-400 text-zinc-950 text-xs font-black py-2.5 px-5 rounded-xl shadow-lg transition-colors"
-                >
-                  Ver Todas as Retrô ({retroJerseys.length})
-                </button>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
-                {retroJerseys.slice(0, 4).map((jersey) => (
-                  <JerseyCard
-                    key={jersey.id}
-                    jersey={jersey}
-                    onCustomize={(j) => setCustomizingJersey(j)}
-                  />
-                ))}
-              </div>
-            </div>
-
-            {/* Seleções Showcase Section */}
-            <div className="bg-gradient-to-r from-emerald-950/40 via-zinc-900 to-zinc-950 p-6 sm:p-8 rounded-3xl border border-emerald-500/30">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6">
-                <div>
-                  <span className="text-[11px] font-black uppercase tracking-wider text-emerald-400 bg-emerald-500/10 px-2.5 py-1 rounded-full border border-emerald-500/20">
-                    🌍 Coleção Internacional
-                  </span>
-                  <h3 className="text-2xl font-black text-white mt-1">
-                    Seleções Mundiais (R$ 150,00)
-                  </h3>
-                  <p className="text-xs text-zinc-400">
-                    Brasil, Argentina 3 Estrelas, França, Alemanha, Portugal e edições especiais.
-                  </p>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => setSelectedCategory('selecoes')}
-                  className="self-start sm:self-auto bg-emerald-500 hover:bg-emerald-400 text-zinc-950 text-xs font-black py-2.5 px-5 rounded-xl shadow-lg transition-colors"
-                >
-                  Ver Todas as Seleções ({selecoesJerseys.length})
-                </button>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
-                {selecoesJerseys.slice(0, 4).map((jersey) => (
-                  <JerseyCard
-                    key={jersey.id}
-                    jersey={jersey}
-                    onCustomize={(j) => setCustomizingJersey(j)}
-                  />
-                ))}
-              </div>
             </div>
           </div>
         )}
@@ -459,7 +426,8 @@ export default function App() {
       {/* Footer */}
       <Footer
         onSelectCategory={(cat) => {
-          setSelectedCategory(cat);
+          setSelectedLeague(cat);
+          setSelectedTeam('');
           window.scrollTo({ top: 0, behavior: 'smooth' });
         }}
         onOpenSupport={() => setIsSupportOpen(true)}
@@ -467,8 +435,7 @@ export default function App() {
       />
 
       {/* ALL MODALS */}
-
-      {/* 1. Jersey Live Customizer Modal */}
+      {/* 1. Jersey 3D Customizer Modal */}
       <JerseyCustomizerModal
         jersey={customizingJersey}
         isOpen={!!customizingJersey}
@@ -481,32 +448,46 @@ export default function App() {
       <CartDrawer
         isOpen={isCartOpen}
         onClose={() => setIsCartOpen(false)}
-        items={cart}
+        cart={cart}
         onUpdateQuantity={handleUpdateCartQuantity}
         onRemoveItem={handleRemoveCartItem}
-        onOpenCheckout={(discount) => {
-          setDiscountApplied(discount);
+        onClearCart={handleClearCart}
+        onOpenCheckout={() => {
+          setIsCartOpen(false);
           setIsCheckoutOpen(true);
         }}
       />
 
-      {/* 3. Support Chat Modal */}
+      {/* 3. Checkout Modal */}
+      <CheckoutModal
+        isOpen={isCheckoutOpen}
+        onClose={() => setIsCheckoutOpen(false)}
+        cart={cart}
+        discountApplied={discountApplied}
+        onClearCart={handleClearCart}
+      />
+
+      {/* 4. Support Chat Modal */}
       <SupportChatModal
         isOpen={isSupportOpen}
         onClose={() => setIsSupportOpen(false)}
+        onSelectCategory={(cat) => {
+          setSelectedLeague(cat);
+          setIsSupportOpen(false);
+        }}
         onOpenSizeGuide={() => {
           setIsSupportOpen(false);
           setIsSizeGuideOpen(true);
         }}
       />
 
-      {/* 4. Size Guide Modal */}
+      {/* 5. Size Guide Modal */}
       <SizeGuideModal
         isOpen={isSizeGuideOpen}
         onClose={() => setIsSizeGuideOpen(false)}
       />
 
-      {/* 5. Admin Catalog Manager Modal ("Adicionar camisas e imagens futuramente") */}
+      {/* 6. Admin Catalog Modal */}
       <AdminCatalogModal
         isOpen={isAdminOpen}
         onClose={() => setIsAdminOpen(false)}
@@ -514,16 +495,6 @@ export default function App() {
         onAddJersey={handleAddJersey}
         onDeleteJersey={handleDeleteJersey}
         onResetCatalog={handleResetCatalog}
-      />
-
-      {/* 6. Checkout Modal */}
-      <CheckoutModal
-        isOpen={isCheckoutOpen}
-        onClose={() => setIsCheckoutOpen(false)}
-        items={cart}
-        totalAmount={Math.max(0, cart.reduce((acc, i) => acc + i.totalPrice, 0) - discountApplied)}
-        discountApplied={discountApplied}
-        onClearCart={handleClearCart}
       />
     </div>
   );
