@@ -244,7 +244,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
                   <input
                     type="text"
                     readOnly
-                    value="21970669281"
+                    value={WHATSAPP_NUMBER}
                     className="flex-1 bg-zinc-900 border border-zinc-700 rounded-lg px-3 py-2 text-xs text-amber-400 font-mono font-bold select-all"
                   />
                   <button

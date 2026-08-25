@@ -752,6 +752,6 @@ export const INITIAL_JERSEYS: Jersey[] = [
   }
 ];
 
-export const WHATSAPP_NUMBER = '21970669281';
-export const WHATSAPP_DISPLAY = '(21) 97066-9281';
-export const WHATSAPP_RAW_LINK = `https://wa.me/5521970669281`;
+export const WHATSAPP_NUMBER = '21979669281';
+export const WHATSAPP_DISPLAY = '(21) 97966-9281';
+export const WHATSAPP_RAW_LINK = `https://wa.me/5521979669281`;
