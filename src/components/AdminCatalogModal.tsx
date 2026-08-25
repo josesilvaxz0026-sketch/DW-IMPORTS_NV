@@ -33,19 +33,6 @@ export const AdminCatalogModal: React.FC<AdminCatalogModalProps> = ({
   onDeleteJersey,
   onResetCatalog,
 }) => {
-  // Lock background scroll on mobile when admin is active
-  useEffect(() => {
-    if (isOpen) {
-      const originalOverflow = document.body.style.overflow;
-      document.body.style.overflow = 'hidden';
-      return () => {
-        document.body.style.overflow = originalOverflow;
-      };
-    }
-  }, [isOpen]);
-
-  if (!isOpen) return null;
-
   const [activeTab, setActiveTab] = useState<'add' | 'list'>('add');
 
   // New Jersey Form State
@@ -66,6 +53,19 @@ export const AdminCatalogModal: React.FC<AdminCatalogModalProps> = ({
   const [defaultPlayerName, setDefaultPlayerName] = useState('');
   const [selectedPatchIds, setSelectedPatchIds] = useState<string[]>(['champions', 'libertadores', 'brasileirao']);
   const [feedbackMsg, setFeedbackMsg] = useState('');
+
+  // Lock background scroll on mobile when admin is active
+  useEffect(() => {
+    if (isOpen) {
+      const originalOverflow = document.body.style.overflow;
+      document.body.style.overflow = 'hidden';
+      return () => {
+        document.body.style.overflow = originalOverflow;
+      };
+    }
+  }, [isOpen]);
+
+  if (!isOpen) return null;
 
   // Handle Type Change (auto sets default price)
   const handleTypeChange = (newType: JerseyType) => {

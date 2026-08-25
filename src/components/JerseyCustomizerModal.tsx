@@ -30,6 +30,14 @@ export const JerseyCustomizerModal: React.FC<JerseyCustomizerModalProps> = ({
   onAddToCart,
   onOpenSizeGuide,
 }) => {
+  const [viewSide, setViewSide] = useState<'front' | 'back'>('back');
+  const [size, setSize] = useState<JerseySize>('M');
+  const [hasCustomNameNumber, setHasCustomNameNumber] = useState<boolean>(true);
+  const [customName, setCustomName] = useState<string>('');
+  const [customNumber, setCustomNumber] = useState<string>('10');
+  const [hasSponsor, setHasSponsor] = useState<boolean>(false);
+  const [selectedPatch, setSelectedPatch] = useState<string>('');
+
   // Lock background scroll on mobile when modal is active
   useEffect(() => {
     if (isOpen) {
@@ -41,17 +49,24 @@ export const JerseyCustomizerModal: React.FC<JerseyCustomizerModalProps> = ({
     }
   }, [isOpen]);
 
-  if (!isOpen || !jersey) return null;
+  // Sync state whenever a new jersey is selected
+  useEffect(() => {
+    if (jersey && isOpen) {
+      setViewSide('back');
+      setSize('M');
+      setHasCustomNameNumber(true);
+      setCustomName(jersey.defaultPlayerName || '');
+      setCustomNumber(jersey.defaultNumber || '10');
+      setHasSponsor(false);
+      setSelectedPatch(
+        jersey.availablePatches && jersey.availablePatches.length > 0 
+          ? jersey.availablePatches[0].id 
+          : ''
+      );
+    }
+  }, [jersey, isOpen]);
 
-  const [viewSide, setViewSide] = useState<'front' | 'back'>('back');
-  const [size, setSize] = useState<JerseySize>('M');
-  const [hasCustomNameNumber, setHasCustomNameNumber] = useState<boolean>(true);
-  const [customName, setCustomName] = useState<string>(jersey.defaultPlayerName || '');
-  const [customNumber, setCustomNumber] = useState<string>(jersey.defaultNumber || '10');
-  const [hasSponsor, setHasSponsor] = useState<boolean>(false);
-  const [selectedPatch, setSelectedPatch] = useState<string>(
-    jersey.availablePatches.length > 0 ? jersey.availablePatches[0].id : ''
-  );
+  if (!isOpen || !jersey) return null;
 
   // Price calculations:
   // Base: 150 (normal/selecao) or 170 (retro)

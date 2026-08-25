@@ -33,6 +33,14 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
   discountApplied,
   onClearCart,
 }) => {
+  const [customerName, setCustomerName] = useState('');
+  const [customerPhone, setCustomerPhone] = useState('');
+  const [address, setAddress] = useState('');
+  const [city, setCity] = useState('');
+  const [cep, setCep] = useState('');
+  const [copiedPix, setCopiedPix] = useState(false);
+  const [orderPlaced, setOrderPlaced] = useState(false);
+
   // Lock background scroll on mobile when checkout is active
   useEffect(() => {
     if (isOpen) {
@@ -45,14 +53,6 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
   }, [isOpen]);
 
   if (!isOpen) return null;
-
-  const [customerName, setCustomerName] = useState('');
-  const [customerPhone, setCustomerPhone] = useState('');
-  const [address, setAddress] = useState('');
-  const [city, setCity] = useState('');
-  const [cep, setCep] = useState('');
-  const [copiedPix, setCopiedPix] = useState(false);
-  const [orderPlaced, setOrderPlaced] = useState(false);
 
   // Fake static PIX payload code
   const pixKey = "00020126580014BR.GOV.BCB.PIX0136dw-imports-pagamentos@gmail.com520400005303986540" + totalAmount.toFixed(2) + "5802BR5925DW IMPORTS FUTEBOL6009RIO DE JANEIRO62070503***6304B8F1";
