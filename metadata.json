@@ -1,0 +1,6 @@
+{
+  "name": "DW IMPORTS - Camisas de Time Personalizadas",
+  "description": "Loja DW IMPORTS de camisas de futebol com personalização oficial de nome, número, patches e patrocínio, catálogo de clubes, seleções mundiais e camisas retrô.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
