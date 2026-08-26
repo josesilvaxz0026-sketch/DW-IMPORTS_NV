@@ -1,6 +1,6 @@
 import React from 'react';
 import { Jersey, CustomizationOptions } from '../types';
-import { Sparkles, Shield, Award } from 'lucide-react';
+import { Sparkles, Award } from 'lucide-react';
 
 interface JerseyPreviewCanvasProps {
   jersey: Jersey;
@@ -251,8 +251,8 @@ export const JerseyPreviewCanvas: React.FC<JerseyPreviewCanvasProps> = ({
               {/* Club Crest / Escudo (Chest Left) */}
               <g transform="translate(145, 125)">
                 <circle cx="16" cy="16" r="18" fill="#FFFFFF" opacity="0.95" stroke="#D4AF37" strokeWidth="1.5" />
-                <Shield className="w-6 h-6 text-zinc-900" x="4" y="4" />
-                <text x="16" y="22" textAnchor="middle" fontSize="7" fontWeight="900" fill="#09090b">
+                <path d="M 16 5 L 25 9 V 15 C 25 21 21 24 16 26 C 11 24 7 21 7 15 V 9 Z" fill="#18181b" stroke="#D4AF37" strokeWidth="1" />
+                <text x="16" y="17" textAnchor="middle" fontSize="6.5" fontWeight="900" fill="#FFFFFF">
                   {jersey.team.slice(0, 3).toUpperCase()}
                 </text>
               </g>

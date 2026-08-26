@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Jersey } from '../types';
-import { Sparkles, Award, Eye, ShoppingBag, Shield } from 'lucide-react';
+import { Sparkles, Award, Eye, ShoppingBag, CheckCircle, Clock, AlertTriangle } from 'lucide-react';
 
 interface JerseyCardProps {
   jersey: Jersey;
@@ -12,17 +12,37 @@ export const JerseyCard: React.FC<JerseyCardProps> = ({ jersey, onCustomize }) =
 
   const isRetro = jersey.type === 'retro';
   const isSelecao = jersey.type === 'selecao';
+  
+  // Stock status logic
+  const isOutOfStock = jersey.inStock === false || jersey.stockStatus === 'out_of_stock';
+  const isPreOrder = jersey.stockStatus === 'pre_order';
+  const hasPromo = Boolean(jersey.promoPrice && jersey.promoPrice > 0 && jersey.promoPrice < jersey.basePrice);
+  const displayPrice = hasPromo && jersey.promoPrice ? jersey.promoPrice : jersey.basePrice;
 
   return (
     <div
       id={`jersey-card-${jersey.id}`}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
-      className="group relative bg-zinc-900/90 rounded-2xl border border-zinc-800/80 hover:border-amber-500/60 overflow-hidden shadow-lg hover:shadow-2xl hover:shadow-amber-500/10 transition-all duration-300 flex flex-col justify-between"
+      className={`group relative bg-zinc-900/90 rounded-2xl border ${
+        isOutOfStock 
+          ? 'border-rose-900/50 opacity-90' 
+          : isPreOrder
+          ? 'border-purple-800/60 hover:border-purple-500/80'
+          : 'border-zinc-800/80 hover:border-amber-500/60'
+      } overflow-hidden shadow-lg hover:shadow-2xl hover:shadow-amber-500/10 transition-all duration-300 flex flex-col justify-between`}
     >
       {/* Top Badges */}
       <div className="absolute top-3 left-3 z-10 flex flex-col gap-1.5">
-        {isRetro ? (
+        {isOutOfStock ? (
+          <span className="bg-rose-600 text-white text-[10px] font-black uppercase px-2.5 py-1 rounded-full tracking-wider shadow-md flex items-center gap-1">
+            <AlertTriangle className="w-3 h-3" /> Esgotado
+          </span>
+        ) : isPreOrder ? (
+          <span className="bg-purple-600 text-white text-[10px] font-black uppercase px-2.5 py-1 rounded-full tracking-wider shadow-md flex items-center gap-1">
+            <Clock className="w-3 h-3" /> Sob Encomenda
+          </span>
+        ) : isRetro ? (
           <span className="bg-amber-500 text-zinc-950 text-[10px] font-black uppercase px-2.5 py-1 rounded-full tracking-wider shadow-md">
             ⭐ Camisa Retrô
           </span>
@@ -36,18 +56,30 @@ export const JerseyCard: React.FC<JerseyCardProps> = ({ jersey, onCustomize }) =
           </span>
         )}
 
-        {jersey.isBestSeller && (
-          <span className="bg-rose-600 text-white text-[9px] font-bold uppercase px-2 py-0.5 rounded-full w-fit">
-            Mais Vendida
+        {jersey.isBestSeller && !isOutOfStock && (
+          <span className="bg-rose-600 text-white text-[9px] font-bold uppercase px-2 py-0.5 rounded-full w-fit shadow">
+            🔥 Mais Vendida
+          </span>
+        )}
+
+        {hasPromo && (
+          <span className="bg-amber-500 text-zinc-950 text-[9px] font-black uppercase px-2 py-0.5 rounded-full w-fit shadow">
+            🏷️ Promoção
           </span>
         )}
       </div>
 
       {/* Season Badge Top Right */}
-      <div className="absolute top-3 right-3 z-10">
+      <div className="absolute top-3 right-3 z-10 flex flex-col items-end gap-1">
         <span className="bg-zinc-950/80 text-zinc-400 border border-zinc-800 text-[10px] font-mono font-semibold px-2 py-0.5 rounded-md backdrop-blur">
           {jersey.season}
         </span>
+        {!isOutOfStock && !isPreOrder && (
+          <span className="bg-emerald-950/80 text-emerald-400 border border-emerald-800/60 text-[9px] font-bold px-1.5 py-0.5 rounded flex items-center gap-1 backdrop-blur">
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+            Pronta Entrega
+          </span>
+        )}
       </div>
 
       {/* Jersey Visual Preview Area */}
@@ -62,7 +94,7 @@ export const JerseyCard: React.FC<JerseyCardProps> = ({ jersey, onCustomize }) =
         />
 
         {/* Photorealistic stylized vector jersey representation */}
-        <div className="relative w-36 h-40 flex items-center justify-center transition-transform duration-300 group-hover:scale-105">
+        <div className={`relative w-36 h-40 flex items-center justify-center transition-transform duration-300 group-hover:scale-105 ${isOutOfStock ? 'grayscale-[0.5]' : ''}`}>
           <svg viewBox="0 0 400 460" className="w-full h-full drop-shadow-[0_15px_15px_rgba(0,0,0,0.6)]">
             <defs>
               <linearGradient id={`card-grad-${jersey.id}`} x1="0%" y1="0%" x2="100%" y2="100%">
@@ -119,7 +151,7 @@ export const JerseyCard: React.FC<JerseyCardProps> = ({ jersey, onCustomize }) =
         <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-center justify-center backdrop-blur-[2px]">
           <span className="bg-amber-500 text-zinc-950 text-xs font-black px-4 py-2 rounded-xl shadow-lg flex items-center gap-1.5 transform translate-y-2 group-hover:translate-y-0 transition-transform">
             <Eye className="w-3.5 h-3.5" />
-            Personalizar Agora
+            {isOutOfStock ? 'Ver Detalhes / Encomendar' : 'Personalizar Agora'}
           </span>
         </div>
       </div>
@@ -128,8 +160,14 @@ export const JerseyCard: React.FC<JerseyCardProps> = ({ jersey, onCustomize }) =
       <div className="p-4 bg-zinc-900/60 flex-1 flex flex-col justify-between border-t border-zinc-800/80">
         <div>
           <div className="flex items-center justify-between text-[11px] text-zinc-400 mb-1">
-            <span>{jersey.team}</span>
-            <span className="font-semibold text-zinc-300">{jersey.league}</span>
+            <span className="font-semibold text-zinc-300">{jersey.team}</span>
+            {jersey.modelType ? (
+              <span className="text-[10px] text-amber-400/90 font-bold bg-zinc-950 px-1.5 py-0.5 rounded border border-zinc-800">
+                {jersey.modelType.split('(')[0].trim()}
+              </span>
+            ) : (
+              <span className="font-medium text-zinc-400">{jersey.league}</span>
+            )}
           </div>
 
           <h3 
@@ -159,19 +197,29 @@ export const JerseyCard: React.FC<JerseyCardProps> = ({ jersey, onCustomize }) =
         {/* Price & Action button */}
         <div className="mt-3 flex items-center justify-between gap-2">
           <div>
-            <span className="text-[10px] text-zinc-500 block leading-none">A partir de</span>
-            <span className="text-base font-black text-white">
-              R$ {jersey.basePrice.toFixed(2).replace('.', ',')}
+            <span className="text-[10px] text-zinc-500 block leading-none">
+              {hasPromo ? 'De R$ ' + jersey.basePrice.toFixed(2).replace('.', ',') : 'A partir de'}
             </span>
+            <div className="flex items-baseline gap-1.5">
+              <span className={`text-base font-black ${hasPromo ? 'text-amber-400' : 'text-white'}`}>
+                R$ {displayPrice.toFixed(2).replace('.', ',')}
+              </span>
+            </div>
           </div>
 
           <button
             type="button"
             onClick={() => onCustomize(jersey)}
-            className="bg-zinc-800 hover:bg-amber-500 text-zinc-200 hover:text-zinc-950 text-xs font-bold py-2 px-3.5 rounded-xl transition-all border border-zinc-700 hover:border-amber-400 flex items-center gap-1.5 shadow"
+            className={`text-xs font-bold py-2 px-3.5 rounded-xl transition-all border flex items-center gap-1.5 shadow ${
+              isOutOfStock
+                ? 'bg-zinc-800 text-zinc-400 border-zinc-700 hover:bg-zinc-700 hover:text-white'
+                : isPreOrder
+                ? 'bg-purple-900/60 hover:bg-purple-700 text-purple-200 border-purple-700/80 hover:text-white'
+                : 'bg-zinc-800 hover:bg-amber-500 text-zinc-200 hover:text-zinc-950 border-zinc-700 hover:border-amber-400'
+            }`}
           >
             <ShoppingBag className="w-3.5 h-3.5" />
-            <span>Personalizar</span>
+            <span>{isOutOfStock ? 'Encomendar' : 'Personalizar'}</span>
           </button>
         </div>
       </div>

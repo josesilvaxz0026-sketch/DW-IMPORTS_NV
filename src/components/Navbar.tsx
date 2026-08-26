@@ -8,7 +8,10 @@ import {
   Flame, 
   Phone,
   Layers,
-  Award
+  Award,
+  LogOut,
+  ShieldCheck,
+  Lock
 } from 'lucide-react';
 import { WHATSAPP_NUMBER, WHATSAPP_DISPLAY } from '../data/initialJerseys';
 import { DW_LOGO_URL } from '../assets/logo';
@@ -17,9 +20,13 @@ interface NavbarProps {
   searchQuery: string;
   onSearchChange: (query: string) => void;
   cartCount: number;
+  jerseysCount?: number;
+  isAdminAuthenticated?: boolean;
   onOpenCart: () => void;
   onOpenSupport: () => void;
   onOpenAdmin: () => void;
+  onOpenAdminAuth?: () => void;
+  onLogoutAdmin?: () => void;
   selectedCategory: string;
   onSelectCategory: (cat: string) => void;
 }
@@ -28,9 +35,13 @@ export const Navbar: React.FC<NavbarProps> = ({
   searchQuery,
   onSearchChange,
   cartCount,
+  jerseysCount = 0,
+  isAdminAuthenticated = false,
   onOpenCart,
   onOpenSupport,
   onOpenAdmin,
+  onOpenAdminAuth,
+  onLogoutAdmin,
   selectedCategory,
   onSelectCategory,
 }) => {
@@ -106,19 +117,49 @@ export const Navbar: React.FC<NavbarProps> = ({
           </div>
         </div>
 
-        {/* Right Actions: Admin, Support Chat, Cart */}
+        {/* Right Actions: Admin (if authenticated or login lock), Support Chat, Cart */}
         <div className="flex items-center gap-2 sm:gap-3">
-          {/* Admin Catalog Manager Button */}
-          <button
-            type="button"
-            id="btn-nav-admin"
-            onClick={onOpenAdmin}
-            className="px-2.5 sm:px-3 py-2 bg-zinc-900 hover:bg-zinc-800 text-zinc-300 hover:text-amber-400 border border-zinc-700 rounded-xl text-xs font-bold transition-colors flex items-center gap-1.5"
-            title="Adicionar novas camisas e imagens"
-          >
-            <PlusCircle className="w-4 h-4 text-amber-400" />
-            <span className="hidden sm:inline">Gerenciar Catálogo</span>
-          </button>
+          {/* Admin Control Center Button (If authenticated) or Discreet Admin Key Login */}
+          {isAdminAuthenticated ? (
+            <div className="flex items-center gap-1 bg-amber-500/10 border border-amber-500/40 rounded-xl p-0.5 animate-fadeIn">
+              <button
+                type="button"
+                id="btn-nav-admin"
+                onClick={onOpenAdmin}
+                className="px-2.5 sm:px-3 py-1.5 bg-gradient-to-r from-amber-600 to-amber-500 text-zinc-950 font-black rounded-lg text-xs transition-all flex items-center gap-1.5 shadow-sm hover:brightness-110"
+                title="Painel de Controle: Gerenciar estoque, disponibilidade, cadastrar mantos e ver pedidos"
+              >
+                <Layers className="w-3.5 h-3.5" />
+                <span className="hidden sm:inline">Painel Lojista</span>
+                {jerseysCount > 0 && (
+                  <span className="bg-zinc-950 text-amber-400 text-[10px] font-mono font-bold px-1.5 py-0.2 rounded">
+                    {jerseysCount}
+                  </span>
+                )}
+              </button>
+              {onLogoutAdmin && (
+                <button
+                  type="button"
+                  onClick={onLogoutAdmin}
+                  title="Encerrar Sessão de Administrador"
+                  className="p-1.5 text-zinc-400 hover:text-rose-400 rounded-lg hover:bg-zinc-900 transition-colors"
+                >
+                  <LogOut className="w-3.5 h-3.5" />
+                </button>
+              )}
+            </div>
+          ) : (
+            <button
+              type="button"
+              id="btn-nav-admin-login"
+              onClick={onOpenAdminAuth}
+              className="px-2.5 py-2 bg-zinc-900 hover:bg-zinc-800 text-zinc-400 hover:text-amber-400 border border-zinc-700/80 hover:border-amber-500/40 rounded-xl text-xs font-semibold transition-all flex items-center gap-1.5"
+              title="Acesso Restrito / Lojista (Senha: dw2025)"
+            >
+              <Lock className="w-3.5 h-3.5 text-amber-400" />
+              <span className="hidden md:inline">Lojista</span>
+            </button>
+          )}
 
           {/* Support Chat Button */}
           <button

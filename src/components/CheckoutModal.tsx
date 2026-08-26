@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { CartItem } from '../types';
+import { CartItem, OrderRecord } from '../types';
 import { WHATSAPP_NUMBER, WHATSAPP_DISPLAY } from '../data/initialJerseys';
 import { DW_LOGO_URL } from '../assets/logo';
 import { 
@@ -14,7 +14,6 @@ import {
   User,
   Phone
 } from 'lucide-react';
-import confetti from 'canvas-confetti';
 
 interface CheckoutModalProps {
   isOpen: boolean;
@@ -23,6 +22,7 @@ interface CheckoutModalProps {
   totalAmount: number;
   discountApplied: number;
   onClearCart: () => void;
+  onRegisterOrder?: (order: OrderRecord) => void;
 }
 
 export const CheckoutModal: React.FC<CheckoutModalProps> = ({
@@ -32,6 +32,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
   totalAmount,
   discountApplied,
   onClearCart,
+  onRegisterOrder,
 }) => {
   const [customerName, setCustomerName] = useState('');
   const [customerPhone, setCustomerPhone] = useState('');
@@ -58,22 +59,27 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
   const pixKey = "00020126580014BR.GOV.BCB.PIX0136dw-imports-pagamentos@gmail.com520400005303986540" + totalAmount.toFixed(2) + "5802BR5925DW IMPORTS FUTEBOL6009RIO DE JANEIRO62070503***6304B8F1";
 
   const handleCopyPix = () => {
-    navigator.clipboard.writeText(pixKey);
-    setCopiedPix(true);
-    setTimeout(() => setCopiedPix(false), 3000);
+    try {
+      if (navigator?.clipboard?.writeText) {
+        navigator.clipboard.writeText(pixKey).then(() => {
+          setCopiedPix(true);
+          setTimeout(() => setCopiedPix(false), 3000);
+        }).catch(() => {
+          // Fallback
+          setCopiedPix(true);
+          setTimeout(() => setCopiedPix(false), 3000);
+        });
+      } else {
+        setCopiedPix(true);
+        setTimeout(() => setCopiedPix(false), 3000);
+      }
+    } catch {
+      setCopiedPix(true);
+      setTimeout(() => setCopiedPix(false), 3000);
+    }
   };
 
   const handleCompleteWhatsAppOrder = () => {
-    // Trigger confetti
-    try {
-      confetti({
-        particleCount: 80,
-        spread: 70,
-        origin: { y: 0.6 }
-      });
-    } catch {
-      // ignore
-    }
 
     const orderLines = [
       `⚡⚽ *NOVO PEDIDO - DW IMPORTS* ⚽⚡`,
@@ -114,6 +120,23 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
 
     const encodedMsg = encodeURIComponent(orderLines.join('\n'));
     window.open(`https://wa.me/55${WHATSAPP_NUMBER}?text=${encodedMsg}`, '_blank');
+
+    if (onRegisterOrder) {
+      const newOrder: OrderRecord = {
+        id: 'PED-' + Date.now().toString(36).toUpperCase() + '-' + Math.floor(Math.random() * 900 + 100),
+        customerName: customerName.trim() || 'Cliente Site',
+        customerPhone: customerPhone.trim() || 'Não informado',
+        customerCity: city.trim() || undefined,
+        customerAddress: address.trim() ? `${address.trim()}, ${city.trim()} - CEP: ${cep.trim()}` : undefined,
+        items: [...items],
+        totalAmount,
+        discountApplied,
+        paymentMethod: 'PIX (5% OFF)',
+        status: 'pending',
+        createdAt: new Date().toISOString(),
+      };
+      onRegisterOrder(newOrder);
+    }
 
     setOrderPlaced(true);
     setTimeout(() => {

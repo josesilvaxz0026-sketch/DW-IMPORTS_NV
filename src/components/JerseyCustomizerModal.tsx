@@ -68,15 +68,21 @@ export const JerseyCustomizerModal: React.FC<JerseyCustomizerModalProps> = ({
 
   if (!isOpen || !jersey) return null;
 
+  // Stock status logic
+  const isOutOfStock = jersey.inStock === false || jersey.stockStatus === 'out_of_stock';
+  const isPreOrder = jersey.stockStatus === 'pre_order';
+  const hasPromo = Boolean(jersey.promoPrice && jersey.promoPrice > 0 && jersey.promoPrice < jersey.basePrice);
+  const effectiveBasePrice = hasPromo && jersey.promoPrice ? jersey.promoPrice : jersey.basePrice;
+
   // Price calculations:
-  // Base: 150 (normal/selecao) or 170 (retro)
+  // Base: 150 (normal/selecao) or 170 (retro) or promoPrice
   // Name + Number: + R$ 20
   // Sponsor: + R$ 20
   // Patch: + R$ 20
   const nameNumberPrice = hasCustomNameNumber ? 20 : 0;
   const sponsorPrice = hasSponsor ? 20 : 0;
   const patchPrice = selectedPatch ? 20 : 0;
-  const finalUnitPrice = jersey.basePrice + nameNumberPrice + sponsorPrice + patchPrice;
+  const finalUnitPrice = effectiveBasePrice + nameNumberPrice + sponsorPrice + patchPrice;
 
   const currentCustomization: CustomizationOptions = {
     hasCustomNameNumber,
@@ -95,8 +101,11 @@ export const JerseyCustomizerModal: React.FC<JerseyCustomizerModalProps> = ({
   const handleBuyNowWhatsApp = () => {
     const patchObj = jersey.availablePatches.find(p => p.id === selectedPatch);
     const textLines = [
-      `👋 *Olá! Gostaria de encomendar uma camisa personalizada:*`,
+      isOutOfStock 
+        ? `👋 *Olá! Gostaria de encomendar uma camisa que está esgotada no site:*`
+        : `👋 *Olá! Gostaria de encomendar uma camisa personalizada:*`,
       `👕 *Modelo:* ${jersey.name} (${jersey.season})`,
+      `📦 *Status:* ${isOutOfStock ? 'Solicitação de Encomenda' : isPreOrder ? 'Sob Encomenda (7-15 dias)' : 'Pronta Entrega'}`,
       `📏 *Tamanho:* ${size}`,
       hasCustomNameNumber 
         ? `✍️ *Personalização:* Nome: "${customName || 'Sem nome'}" | Número: "${customNumber || 'Sem número'}" (+R$ 20,00)` 
@@ -111,7 +120,10 @@ export const JerseyCustomizerModal: React.FC<JerseyCustomizerModalProps> = ({
     window.open(`https://wa.me/55${WHATSAPP_NUMBER}?text=${message}`, '_blank');
   };
 
-  const SIZES: JerseySize[] = ['P', 'M', 'G', 'GG', 'XGG'];
+  const ALL_SIZES: JerseySize[] = ['P', 'M', 'G', 'GG', 'XGG'];
+  const allowedSizes: JerseySize[] = jersey.availableSizes && jersey.availableSizes.length > 0
+    ? jersey.availableSizes
+    : ALL_SIZES;
 
   return (
     <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-3 md:p-6 bg-black/85 backdrop-blur-sm animate-in fade-in duration-200 overflow-hidden">
@@ -187,18 +199,40 @@ export const JerseyCustomizerModal: React.FC<JerseyCustomizerModalProps> = ({
                 </p>
               </div>
 
-              {/* Price Banner */}
+              {/* Price & Stock Status Banner */}
               <div className="p-3 bg-zinc-800/60 rounded-xl border border-zinc-700/60 flex items-center justify-between">
                 <div>
-                  <span className="text-[11px] text-zinc-400 block">Preço Base:</span>
-                  <span className="text-base sm:text-lg font-bold text-white">
-                    R$ {jersey.basePrice.toFixed(2).replace('.', ',')}
-                  </span>
-                  {jersey.type === 'retro' && (
-                    <span className="ml-2 text-[10px] bg-amber-500/20 text-amber-300 px-1.5 py-0.5 rounded font-semibold">
-                      Retrô
+                  <div className="flex items-center gap-2 mb-0.5">
+                    <span className="text-[11px] text-zinc-400 block">Preço Base:</span>
+                    {isOutOfStock ? (
+                      <span className="text-[10px] bg-rose-500/20 text-rose-300 border border-rose-500/40 px-1.5 py-0.2 rounded font-bold">
+                        Esgotado
+                      </span>
+                    ) : isPreOrder ? (
+                      <span className="text-[10px] bg-purple-500/20 text-purple-300 border border-purple-500/40 px-1.5 py-0.2 rounded font-bold">
+                        Sob Encomenda
+                      </span>
+                    ) : (
+                      <span className="text-[10px] bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 px-1.5 py-0.2 rounded font-bold">
+                        Pronta Entrega
+                      </span>
+                    )}
+                  </div>
+                  <div className="flex items-baseline gap-1.5">
+                    {hasPromo && (
+                      <span className="text-xs text-zinc-500 line-through">
+                        R$ {jersey.basePrice.toFixed(2).replace('.', ',')}
+                      </span>
+                    )}
+                    <span className="text-base sm:text-lg font-bold text-white">
+                      R$ {effectiveBasePrice.toFixed(2).replace('.', ',')}
                     </span>
-                  )}
+                    {jersey.type === 'retro' && (
+                      <span className="ml-1 text-[10px] bg-amber-500/20 text-amber-300 px-1.5 py-0.5 rounded font-semibold">
+                        Retrô
+                      </span>
+                    )}
+                  </div>
                 </div>
                 <div className="text-right">
                   <span className="text-[11px] text-zinc-400 block">Total do Manto:</span>
@@ -226,21 +260,29 @@ export const JerseyCustomizerModal: React.FC<JerseyCustomizerModalProps> = ({
                 </div>
 
                 <div className="grid grid-cols-5 gap-1.5 sm:gap-2">
-                  {SIZES.map((sz) => (
-                    <button
-                      key={sz}
-                      type="button"
-                      id={`btn-size-${sz}`}
-                      onClick={() => setSize(sz)}
-                      className={`min-h-[44px] py-2.5 rounded-xl text-sm font-bold transition-all border flex items-center justify-center ${
-                        size === sz
-                          ? 'bg-amber-500 text-zinc-950 border-amber-400 shadow-md font-black scale-[1.02]'
-                          : 'bg-zinc-800 text-zinc-300 border-zinc-700 hover:border-zinc-500 hover:bg-zinc-750 active:scale-95'
-                      }`}
-                    >
-                      {sz}
-                    </button>
-                  ))}
+                  {ALL_SIZES.map((sz) => {
+                    const isAvailable = allowedSizes.includes(sz);
+                    return (
+                      <button
+                        key={sz}
+                        type="button"
+                        id={`btn-size-${sz}`}
+                        onClick={() => setSize(sz)}
+                        className={`min-h-[44px] py-2.5 rounded-xl text-sm font-bold transition-all border flex flex-col items-center justify-center relative ${
+                          size === sz
+                            ? 'bg-amber-500 text-zinc-950 border-amber-400 shadow-md font-black scale-[1.02]'
+                            : isAvailable
+                            ? 'bg-zinc-800 text-zinc-300 border-zinc-700 hover:border-zinc-500 hover:bg-zinc-750 active:scale-95'
+                            : 'bg-zinc-900/60 text-zinc-600 border-zinc-800 hover:border-zinc-700'
+                        }`}
+                      >
+                        <span>{sz}</span>
+                        {!isAvailable && (
+                          <span className="text-[8px] text-rose-400 font-mono -mt-0.5">Esgotado</span>
+                        )}
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
 

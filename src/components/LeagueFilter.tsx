@@ -1,5 +1,5 @@
 import React from 'react';
-import { Filter, ArrowUpDown, X } from 'lucide-react';
+import { Filter, ArrowUpDown, X, Calendar, Tag } from 'lucide-react';
 import { LEAGUES_DATA } from './LeagueCards';
 
 interface LeagueFilterProps {
@@ -7,6 +7,14 @@ interface LeagueFilterProps {
   onSelectLeague: (leagueId: string) => void;
   selectedTeam: string;
   onSelectTeam: (team: string) => void;
+  selectedYear?: string;
+  onSelectYear?: (year: string) => void;
+  availableYears?: string[];
+  selectedModel?: string;
+  onSelectModel?: (model: string) => void;
+  availableModels?: string[];
+  selectedStockFilter?: string;
+  onSelectStockFilter?: (filter: string) => void;
   sortBy: string;
   onSortByChange: (sort: string) => void;
   availableTeams: string[];
@@ -18,6 +26,14 @@ export const LeagueFilter: React.FC<LeagueFilterProps> = ({
   onSelectLeague,
   selectedTeam,
   onSelectTeam,
+  selectedYear = 'all',
+  onSelectYear,
+  availableYears = [],
+  selectedModel = 'all',
+  onSelectModel,
+  availableModels = [],
+  selectedStockFilter = 'all',
+  onSelectStockFilter,
   sortBy,
   onSortByChange,
   availableTeams,
@@ -28,7 +44,7 @@ export const LeagueFilter: React.FC<LeagueFilterProps> = ({
   return (
     <div className="w-full bg-zinc-950 border-y border-zinc-800/80 py-3.5 px-4 sm:px-6 lg:px-8">
       <div className="max-w-7xl mx-auto space-y-3">
-        {/* Top Filter Bar: Active League Tag, Results Count & Sorting */}
+        {/* Top Filter Bar: Active League Tag, Year/Model Selectors, Results Count & Sorting */}
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
           <div className="flex flex-wrap items-center gap-2 text-xs">
             <div className="flex items-center gap-1.5 bg-zinc-900 border border-zinc-700/80 px-2.5 py-1 rounded-xl font-bold text-white">
@@ -60,27 +76,104 @@ export const LeagueFilter: React.FC<LeagueFilterProps> = ({
               </div>
             )}
 
+            {selectedYear && selectedYear !== 'all' && onSelectYear && (
+              <div className="flex items-center gap-1.5 bg-sky-500/20 border border-sky-500/50 text-sky-300 px-2.5 py-1 rounded-xl font-bold">
+                <span>Ano: {selectedYear}</span>
+                <button
+                  type="button"
+                  onClick={() => onSelectYear('all')}
+                  className="hover:text-white ml-0.5"
+                  title="Remover filtro de ano"
+                >
+                  ✕
+                </button>
+              </div>
+            )}
+
+            {selectedModel && selectedModel !== 'all' && onSelectModel && (
+              <div className="flex items-center gap-1.5 bg-emerald-500/20 border border-emerald-500/50 text-emerald-300 px-2.5 py-1 rounded-xl font-bold">
+                <span>Modelo: {selectedModel.split('(')[0]}</span>
+                <button
+                  type="button"
+                  onClick={() => onSelectModel('all')}
+                  className="hover:text-white ml-0.5"
+                  title="Remover filtro de modelo"
+                >
+                  ✕
+                </button>
+              </div>
+            )}
+
+            {selectedStockFilter && selectedStockFilter !== 'all' && onSelectStockFilter && (
+              <div className="flex items-center gap-1.5 bg-purple-500/20 border border-purple-500/50 text-purple-300 px-2.5 py-1 rounded-xl font-bold">
+                <span>
+                  {selectedStockFilter === 'in_stock' ? 'Pronta Entrega' : selectedStockFilter === 'pre_order' ? 'Sob Encomenda' : 'Promoções'}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => onSelectStockFilter('all')}
+                  className="hover:text-white ml-0.5"
+                  title="Remover filtro de disponibilidade"
+                >
+                  ✕
+                </button>
+              </div>
+            )}
+
             <span className="text-zinc-400 text-[11px] ml-1">
-              ({totalResults} {totalResults === 1 ? 'manto disponível' : 'mantos disponíveis'})
+              ({totalResults} {totalResults === 1 ? 'manto' : 'mantos'})
             </span>
           </div>
 
-          {/* Sort Dropdown */}
-          <div className="flex items-center gap-2 self-end sm:self-auto">
-            <span className="text-xs text-zinc-400 flex items-center gap-1">
-              <ArrowUpDown className="w-3.5 h-3.5 text-zinc-400" /> Ordenar:
-            </span>
-            <select
-              value={sortBy}
-              onChange={(e) => onSortByChange(e.target.value)}
-              className="bg-zinc-900 border border-zinc-700 text-xs text-white rounded-xl px-3 py-1.5 focus:outline-none focus:border-amber-500 cursor-pointer"
-            >
-              <option value="featured">Destaques & Mais Vendidas</option>
-              <option value="price-asc">Preço: Menor para Maior</option>
-              <option value="price-desc">Preço: Maior para Menor</option>
-              <option value="name-asc">Nome do Time (A-Z)</option>
-              <option value="season-desc">Temporada / Ano Mais Recente</option>
-            </select>
+          {/* Sort & Year Filter Dropdown */}
+          <div className="flex items-center gap-2 self-end sm:self-auto flex-wrap">
+            {/* Availability Filter */}
+            {onSelectStockFilter && (
+              <select
+                value={selectedStockFilter}
+                onChange={(e) => onSelectStockFilter(e.target.value)}
+                className="bg-zinc-900 border border-zinc-700 text-xs text-white rounded-xl px-2.5 py-1.5 focus:outline-none focus:border-amber-500 cursor-pointer"
+              >
+                <option value="all">Todos os Status</option>
+                <option value="in_stock">🟢 Pronta Entrega</option>
+                <option value="pre_order">🟣 Sob Encomenda</option>
+                <option value="promo">🏷️ Promoções</option>
+              </select>
+            )}
+
+            {/* Year Selector */}
+            {availableYears.length > 0 && onSelectYear && (
+              <div className="flex items-center gap-1.5">
+                <select
+                  value={selectedYear}
+                  onChange={(e) => onSelectYear(e.target.value)}
+                  className="bg-zinc-900 border border-zinc-700 text-xs text-white rounded-xl px-2.5 py-1.5 focus:outline-none focus:border-amber-500 cursor-pointer"
+                >
+                  <option value="all">Todos os Anos</option>
+                  {availableYears.map((yr) => (
+                    <option key={yr} value={yr}>{yr}</option>
+                  ))}
+                </select>
+              </div>
+            )}
+
+            {/* Sort Dropdown */}
+            <div className="flex items-center gap-1.5">
+              <span className="text-xs text-zinc-400 flex items-center gap-1">
+                <ArrowUpDown className="w-3.5 h-3.5 text-zinc-400" /> Ordenar:
+              </span>
+              <select
+                value={sortBy}
+                onChange={(e) => onSortByChange(e.target.value)}
+                className="bg-zinc-900 border border-zinc-700 text-xs text-white rounded-xl px-3 py-1.5 focus:outline-none focus:border-amber-500 cursor-pointer"
+              >
+                <option value="featured">Destaques & Mais Vendidas</option>
+                <option value="season-desc">Temporada / Ano Mais Recente</option>
+                <option value="price-asc">Preço: Menor para Maior</option>
+                <option value="price-desc">Preço: Maior para Menor</option>
+                <option value="name-asc">Nome do Time (A-Z)</option>
+              </select>
+            </div>
           </div>
         </div>
 

@@ -1,18 +1,22 @@
 import React from 'react';
 import { WHATSAPP_NUMBER, WHATSAPP_DISPLAY } from '../data/initialJerseys';
 import { DW_LOGO_URL } from '../assets/logo';
-import { Phone, ShieldCheck, Truck, Sparkles, MessageCircle, Heart } from 'lucide-react';
+import { Phone, ShieldCheck, Truck, Sparkles, MessageCircle, Heart, Lock, KeyRound } from 'lucide-react';
 
 interface FooterProps {
   onSelectCategory: (cat: string) => void;
   onOpenSupport: () => void;
   onOpenSizeGuide: () => void;
+  onOpenAdminAuth: () => void;
+  isAdminAuthenticated?: boolean;
 }
 
 export const Footer: React.FC<FooterProps> = ({
   onSelectCategory,
   onOpenSupport,
   onOpenSizeGuide,
+  onOpenAdminAuth,
+  isAdminAuthenticated = false,
 }) => {
   return (
     <footer className="bg-zinc-950 border-t border-zinc-850 text-zinc-400 text-xs py-12 px-4 sm:px-6 lg:px-8">
@@ -155,9 +159,27 @@ export const Footer: React.FC<FooterProps> = ({
 
       <div className="max-w-7xl mx-auto mt-8 pt-6 border-t border-zinc-850 flex flex-col sm:flex-row items-center justify-between gap-3 text-center sm:text-left text-[11px] text-zinc-500">
         <p>© {new Date().getFullYear()} DW IMPORTS • Todos os direitos reservados.</p>
-        <p className="flex items-center gap-1 justify-center">
-          Atendimento Oficial WhatsApp: <strong className="text-zinc-300">{WHATSAPP_DISPLAY}</strong>
-        </p>
+        
+        <div className="flex items-center gap-4">
+          <p className="flex items-center gap-1 justify-center">
+            Atendimento Oficial WhatsApp: <strong className="text-zinc-300">{WHATSAPP_DISPLAY}</strong>
+          </p>
+
+          <button
+            type="button"
+            id="btn-footer-area-restrita"
+            onClick={onOpenAdminAuth}
+            className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl font-bold transition-all border shadow-sm ${
+              isAdminAuthenticated
+                ? 'bg-amber-500/15 border-amber-500/50 text-amber-400 hover:bg-amber-500/25'
+                : 'bg-zinc-900 hover:bg-zinc-850 border-amber-500/30 hover:border-amber-500/60 text-zinc-300 hover:text-amber-400'
+            }`}
+            title="Acesso Restrito da Gerência da Loja (Senha de Administrador)"
+          >
+            <Lock className="w-3.5 h-3.5 text-amber-400" />
+            <span>{isAdminAuthenticated ? '⚙️ Painel Lojista (Conectado)' : '🔒 Área Restrita (Lojista)'}</span>
+          </button>
+        </div>
       </div>
     </footer>
   );
